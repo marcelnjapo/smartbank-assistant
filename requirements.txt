@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+openai
+pydantic
+python-multipart
+streamlit
+requests
+python-dotenv
+pyttsx3
+reportlab
+transformers
+torch
