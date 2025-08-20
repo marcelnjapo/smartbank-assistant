@@ -41,7 +41,7 @@ jobs:
           IMAGE_TAG=frontend-${{ github.sha }}
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
           
-          docker build -t $IMAGE_URI -f Dockerfile.frontend frontend .
+          docker build -t $IMAGE_URI -f frontend/Dockerfile.frontend .
           docker push $IMAGE_URI
 
       - name: Register ECS Task Definition
