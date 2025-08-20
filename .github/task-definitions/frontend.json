@@ -2,12 +2,11 @@
   "family": "smartbank-frontend-task",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
-  "cpu": "512",
-  "memory": "1024",
-  "executionRoleArn": "arn:aws:iam::{{ACCOUNT_ID}}:role/ecsTaskExecutionRole",
+  "cpu": "256",
+  "memory": "512",
   "containerDefinitions": [
     {
-      "name": "frontend",
+      "name": "smartbank-frontend",
       "image": "{{IMAGE_URI}}",
       "essential": true,
       "portMappings": [
@@ -17,5 +16,6 @@
         }
       ]
     }
-  ]
+  ],
+  "executionRoleArn": "arn:aws:iam::{{ACCOUNT_ID}}:role/ecsTaskExecutionRole"
 }
