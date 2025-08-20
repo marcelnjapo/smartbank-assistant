@@ -26,22 +26,24 @@ jobs:
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-        
+
       - name: Create ECR repository if it doesn't exist
         run: |
           aws ecr describe-repositories --repository-names smartbank-backend \
           || aws ecr create-repository --repository-name smartbank-backend
+
       - name: Build and push Docker image
         env:
-          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY_BACKEND }}
           ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
           AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
           IMAGE_TAG=backend-${{ github.sha }}
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
-          
+
           docker build -t $IMAGE_URI -f backend/app/Dockerfile.backend .
           docker push $IMAGE_URI
+
       - name: Register ECS Task Definition
         env:
           IMAGE_TAG: backend-${{ github.sha }}
@@ -53,14 +55,56 @@ jobs:
           sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/backend.json > backend-task.json
           aws ecs register-task-definition --cli-input-json file://backend-task.json
 
+      - name: Authorize security group ingress (port 8000)
+        env:
+          SECURITY_GROUP_ID: ${{ vars.SECURITY_GROUP_ID }}
+        run: |
+          aws ec2 authorize-security-group-ingress \
+            --group-id $SECURITY_GROUP_ID \
+            --protocol tcp \
+            --port 8000 \
+            --cidr 0.0.0.0/0 || echo "Ingress rule already exists or failed silently"
+
+      - name: Create ECS Service (if not exists)
+        env:
+          CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
+          SERVICE_NAME: ${{ vars.SERVICE_NAME_BACKEND }}
+          SUBNET_1: ${{ vars.SUBNET_1 }}
+          SUBNET_2: ${{ vars.SUBNET_2 }}
+          SECURITY_GROUP_ID: ${{ vars.SECURITY_GROUP_ID }}
+        run: |
+          SERVICE_EXISTS=$(aws ecs describe-services \
+            --cluster $CLUSTER_NAME \
+            --services $SERVICE_NAME \
+            --query "services[0].status" \
+            --output text 2>/dev/null || echo "MISSING")
+
+          if [ "$SERVICE_EXISTS" = "MISSING" ]; then
+            echo "Creating ECS service: $SERVICE_NAME"
+            aws ecs create-service \
+              --cluster $CLUSTER_NAME \
+              --service-name $SERVICE_NAME \
+              --launch-type FARGATE \
+              --task-definition smartbank-backend-task \
+              --desired-count 1 \
+              --network-configuration "awsvpcConfiguration={subnets=[\"$SUBNET_1\",\"$SUBNET_2\"],securityGroups=[\"$SECURITY_GROUP_ID\"],assignPublicIp=\"ENABLED\"}" \
+              --scheduling-strategy REPLICA
+          else
+            echo "Service $SERVICE_NAME already exists — skipping creation"
+          fi
+
       - name: Update ECS Service with latest task definition
         env:
           CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
           SERVICE_NAME: ${{ vars.SERVICE_NAME_BACKEND }}
         run: |
-          NEW_TASK_DEF=$(aws ecs describe-task-definition --task-definition smartbank-backend-task --query 'taskDefinition.taskDefinitionArn' --output text)
+          NEW_TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition smartbank-backend-task \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
           aws ecs update-service \
             --cluster $CLUSTER_NAME \
-            --service SERVICE_NAME \
+            --service $SERVICE_NAME \
             --task-definition $NEW_TASK_DEF \
             --force-new-deployment
