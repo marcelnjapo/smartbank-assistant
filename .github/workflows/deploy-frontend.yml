@@ -102,8 +102,8 @@ jobs:
         run: |
               NEW_TASK_DEF=$(aws ecs list-task-definitions --family-prefix smartbank-frontend-task --sort DESC --max-items 1 --query 'taskDefinitionArns[0]' --output text)
               aws ecs update-service \
-              --cluster $CLUSTER_NAME \
-              --service $SERVICE_NAME \
-              --task-definition $NEW_TASK_DEF \
-              --force-new-deployment
+                --cluster $CLUSTER_NAME \
+                --service $SERVICE_NAME \
+                --task-definition $NEW_TASK_DEF \
+                --force-new-deployment
 
