@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
 
 jobs:
   deploy:
@@ -13,29 +16,55 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Configure AWS
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Create ECR repository if it doesn't exist
+        run: |
+          aws ecr describe-repositories --repository-names smartbank-frontend \
+          || aws ecr create-repository --repository-name smartbank-frontend
+
       - name: Build and push Docker image
         env:
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY_FRONTEND }}
+          ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
           IMAGE_TAG=frontend-${{ github.sha }}
-          docker build -t $ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile.frontend .
-          docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/${ECR_REPOSITORY}:$IMAGE_TAG
-          docker push ${{ steps.login-ecr.outputs.registry }}/${ECR_REPOSITORY}:$IMAGE_TAG
+          IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
+          
+          docker build -t $IMAGE_URI -f frontend/Dockerfile.frontend frontend
+          docker push $IMAGE_URI
 
-      - name: Update ECS service
+      - name: Register ECS Task Definition
+        env:
+            IMAGE_TAG: frontend-${{ github.sha }}
+            ECR_REPOSITORY: smartbank-frontend
+            AWS_REGION: ${{ secrets.AWS_REGION }}
+            ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
         run: |
-          aws ecs update-service \
-            --cluster ${{ secrets.CLUSTER_NAME }} \
-            --service ${{ secrets.SERVICE_NAME }} \
-            --force-new-deployment
+            IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
+            sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/frontend.json > frontend-task.json
+            aws ecs register-task-definition --cli-input-json file://frontend-task.json
+
+
+      - name: Update ECS Service with latest task definition
+        env:
+            CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
+            SERVICE_NAME: ${{ vars.SERVICE_NAME_FRONTEND }}
+        run: |
+              NEW_TASK_DEF=$(aws ecs describe-task-definition --task-definition smartbank-frontend-task --query 'taskDefinition.taskDefinitionArn' --output text)
+              aws ecs update-service \
+              --cluster $CLUSTER_NAME \
+              --service $SERVICE_NAME \
+              --task-definition $NEW_TASK_DEF \
+              --force-new-deployment
+

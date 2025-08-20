@@ -1,10 +1,15 @@
-FROM python:3.11-slim
+FROM python:3.11
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copie le code du backend
+COPY ./backend/app /app
 
-COPY ./app /app/app
+# Copie le requirements.txt situé à la racine
+COPY requirements.txt /app/requirements.txt
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Installation des dépendances
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Commande de lancement
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
