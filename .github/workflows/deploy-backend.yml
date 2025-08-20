@@ -26,24 +26,22 @@ jobs:
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-
+        
       - name: Create ECR repository if it doesn't exist
         run: |
           aws ecr describe-repositories --repository-names smartbank-backend \
           || aws ecr create-repository --repository-name smartbank-backend
-
       - name: Build and push Docker image
         env:
-          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY_BACKEND }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
           AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
           IMAGE_TAG=backend-${{ github.sha }}
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
-
+          
           docker build -t $IMAGE_URI -f backend/app/Dockerfile.backend .
           docker push $IMAGE_URI
-
       - name: Register ECS Task Definition
         env:
           IMAGE_TAG: backend-${{ github.sha }}
@@ -54,7 +52,6 @@ jobs:
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
           sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/backend.json > backend-task.json
           aws ecs register-task-definition --cli-input-json file://backend-task.json
-
       - name: Authorize security group ingress (port 8000)
         env:
           SECURITY_GROUP_ID: ${{ vars.SECURITY_GROUP_ID }}
@@ -64,7 +61,6 @@ jobs:
             --protocol tcp \
             --port 8000 \
             --cidr 0.0.0.0/0 || echo "Ingress rule already exists or failed silently"
-
       - name: Create ECS Service (if not exists)
         env:
           CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
@@ -91,20 +87,16 @@ jobs:
               --scheduling-strategy REPLICA
           else
             echo "Service $SERVICE_NAME already exists — skipping creation"
-          fi
-
+          fi      
       - name: Update ECS Service with latest task definition
         env:
           CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
           SERVICE_NAME: ${{ vars.SERVICE_NAME_BACKEND }}
+       
         run: |
-          NEW_TASK_DEF=$(aws ecs describe-task-definition \
-            --task-definition smartbank-backend-task \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)
-
-          aws ecs update-service \
-            --cluster $CLUSTER_NAME \
-            --service $SERVICE_NAME \
-            --task-definition $NEW_TASK_DEF \
-            --force-new-deployment
+              NEW_TASK_DEF=$(aws ecs list-task-definitions --family smartbank-backend-task --sort DESC --max-items 1 --query 'taskDefinitionArns[0]' --output text)
+              aws ecs update-service \
+                --cluster $CLUSTER_NAME \
+                --service $SERVICE_NAME \
+                --task-definition $NEW_TASK_DEF \
+                --force-new-deployment

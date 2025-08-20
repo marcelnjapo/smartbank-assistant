@@ -101,6 +101,7 @@ jobs:
             SECURITY_GROUP_ID: ${{ vars.SECURITY_GROUP_ID }}
         run: |
               NEW_TASK_DEF=$(aws ecs list-task-definitions --family smartbank-frontend-task --sort DESC --max-items 1 --query 'taskDefinitionArns[0]' --output text)
+              echo "Using task definition: $NEW_TASK_DEF"
               aws ecs update-service \
                 --cluster $CLUSTER_NAME \
                 --service $SERVICE_NAME \
