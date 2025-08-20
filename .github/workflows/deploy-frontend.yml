@@ -33,7 +33,7 @@ jobs:
           || aws ecr create-repository --repository-name smartbank-frontend
 
       - name: Build and push Docker image
-        env:
+        env: 
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY_FRONTEND }}
           ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
           AWS_REGION: ${{ vars.AWS_REGION }}
@@ -54,8 +54,9 @@ jobs:
             IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
             sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/frontend.json > frontend-task.json
             aws ecs register-task-definition --cli-input-json file://frontend-task.json
+
       - name: Authorize security group ingress (port 8501)
-        env:
+        env: 
             SECURITY_GROUP_ID: ${{ vars.SECURITY_GROUP_ID }}
         run: |
           aws ec2 authorize-security-group-ingress \
@@ -63,7 +64,7 @@ jobs:
             --protocol tcp \
             --port 8501 \
             --cidr 0.0.0.0/0 || echo "Ingress rule already exists or failed silently"
-            - name: Create ECS Service (if not exists)
+      - name: Create ECS Service (if not exists)
         env:
           CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
           SERVICE_NAME: ${{ vars.SERVICE_NAME_FRONTEND }}
