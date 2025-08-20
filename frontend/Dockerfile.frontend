@@ -6,7 +6,7 @@ WORKDIR /frontend
 COPY ./frontend /frontend
 
 # Copie le requirements.txt à la racine (si commun)
-COPY requirements.txt /frontend/requirements.txt
+COPY ../../requirements.txt /frontend/requirements.txt
 
 # Installation
 RUN pip install --no-cache-dir -r /frontend/requirements.txt
