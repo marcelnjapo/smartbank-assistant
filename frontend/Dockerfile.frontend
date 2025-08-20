@@ -3,10 +3,10 @@ FROM python:3.11
 WORKDIR /frontend
 
 # Copie les fichiers frontend
-COPY ./frontend /frontend
+COPY frontend /frontend
 
 # Copie le requirements.txt à la racine (si commun)
-COPY ../requirements.txt /frontend/requirements.txt
+COPY requirements.txt /frontend/requirements.txt
 
 # Installation
 RUN pip install --no-cache-dir -r /frontend/requirements.txt
