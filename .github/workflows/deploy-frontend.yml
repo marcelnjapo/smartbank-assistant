@@ -100,7 +100,12 @@ jobs:
             SUBNET_2: ${{ vars.SUBNET_2 }}
             SECURITY_GROUP_ID: ${{ vars.SECURITY_GROUP_ID }}
         run: |
-              NEW_TASK_DEF=$(aws ecs describe-task-definition --task-definition smartbank-frontend-task --query 'taskDefinition.taskDefinitionArn' --output text)
+              NEW_TASK_DEF=$(aws ecs list-task-definitions \
+              --family-prefix smartbank-frontend-task \
+              --sort DESC \
+              --max-items 1 \
+              --query 'taskDefinitionArns[0]' \
+              --output text)
               aws ecs update-service \
               --cluster $CLUSTER_NAME \
               --service $SERVICE_NAME \
