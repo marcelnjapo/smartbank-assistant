@@ -99,7 +99,7 @@ jobs:
             --sort DESC \
             --max-items 1 \
             --query 'taskDefinitionArns[0]' \
-            --output text)
+            --output text | sed 's|.*/||')
 
           echo "Using task definition: $NEW_TASK_DEF"
 
