@@ -94,17 +94,22 @@ jobs:
   
       - name: Update ECS Service with latest task definition
         env:
-            CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
-            SERVICE_NAME: ${{ vars.SERVICE_NAME_FRONTEND }}
-            SUBNET_1: ${{ vars.SUBNET_1 }}
-            SUBNET_2: ${{ vars.SUBNET_2 }}
-            SECURITY_GROUP_ID: ${{ vars.SECURITY_GROUP_ID }}
+          CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
+          SERVICE_NAME: ${{ vars.SERVICE_NAME_FRONTEND }}
         run: |
-              NEW_TASK_DEF=$(aws ecs list-task-definitions --family smartbank-frontend-task --sort DESC --max-items 1 --query 'taskDefinitionArns[0]' --output text)
-              echo "Using task definition: $NEW_TASK_DEF"
-              aws ecs update-service \
-                --cluster $CLUSTER_NAME \
-                --service $SERVICE_NAME \
-                --task-definition $NEW_TASK_DEF \
-                --force-new-deployment
+          NEW_TASK_DEF=$(aws ecs list-task-definitions \
+            --family-prefix smartbank-frontend-task \
+            --sort DESC \
+            --max-items 1 \
+            --query 'taskDefinitionArns[0]' \
+            --output text)
+
+          echo "Using task definition: $NEW_TASK_DEF"
+
+          aws ecs update-service \
+            --cluster "$CLUSTER_NAME" \
+            --service "$SERVICE_NAME" \
+            --task-definition "$NEW_TASK_DEF" \
+            --force-new-deployment
+
 
