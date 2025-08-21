@@ -45,15 +45,18 @@ jobs:
           docker push $IMAGE_URI
 
       - name: Register ECS Task Definition
+        id: register-task
         env:
-            IMAGE_TAG: frontend-${{ github.sha }}
-            ECR_REPOSITORY: smartbank-frontend
-            AWS_REGION: ${{ vars.AWS_REGION }}
-            ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
+          IMAGE_TAG: frontend-${{ github.sha }}
+          ECR_REPOSITORY: smartbank-frontend
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
         run: |
-            IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
-            sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/frontend.json > frontend-task.json
-            aws ecs register-task-definition --cli-input-json file://frontend-task.json
+          IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
+          sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/frontend.json > frontend-task.json
+
+          TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://frontend-task.json --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
 
       - name: Authorize security group ingress (port 8501)
         env: 
@@ -97,19 +100,12 @@ jobs:
           CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
           SERVICE_NAME: ${{ vars.SERVICE_NAME_FRONTEND }}
         run: |
-          NEW_TASK_DEF=$(aws ecs list-task-definitions \
-            --family-prefix smartbank-frontend-task \
-            --sort DESC \
-            --max-items 1 \
-            --query 'taskDefinitionArns[0]' \
-            --output text | sed 's|.*/||')
-
-          echo "Using task definition: $NEW_TASK_DEF"
+          echo "Using task definition: $TASK_DEF_ARN"
 
           aws ecs update-service \
             --cluster "$CLUSTER_NAME" \
             --service "$SERVICE_NAME" \
-            --task-definition "$NEW_TASK_DEF" \
+            --task-definition "$TASK_DEF_ARN" \
             --force-new-deployment
 
 
