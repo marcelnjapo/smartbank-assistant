@@ -87,7 +87,7 @@ jobs:
               --cluster $CLUSTER_NAME \
               --service-name $SERVICE_NAME \
               --launch-type FARGATE \
-              --task-definition smartbank-backend-task \
+              --task-definition $TASK_DEF_ARN \
               --desired-count 1 \
               --network-configuration "awsvpcConfiguration={subnets=[\"$SUBNET_1\",\"$SUBNET_2\"],securityGroups=[\"$SECURITY_GROUP_ID\"],assignPublicIp=\"ENABLED\"}" \
               --scheduling-strategy REPLICA
