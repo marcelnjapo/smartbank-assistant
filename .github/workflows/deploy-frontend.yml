@@ -61,12 +61,12 @@ jobs:
           TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://frontend-task.json --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
 
-      - name: Authorize security group ingress (port 8501)     
+      - name: Authorize security group ingress (port 80)     
         run: |
           aws ec2 authorize-security-group-ingress \
             --group-id ${{ vars.SECURITY_GROUP_ID }} \
             --protocol tcp \
-            --port 8501 \
+            --port 80 \
             --cidr 0.0.0.0/0 || echo "Ingress rule already exists or failed silently"
       - name: Create ECS Service (if not exists)
         run: |
