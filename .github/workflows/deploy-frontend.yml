@@ -1,3 +1,6 @@
+name: Debug cluster var
+run: |
+    echo "CLUSTER_NAME is: ${{ vars.CLUSTER_NAME }}"
 name: Deploy Streamlit Frontend
 
 on:
