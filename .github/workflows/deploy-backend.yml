@@ -7,7 +7,15 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/deploy-backend.yml'
-
+env:
+    ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+    ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
+    AWS_REGION: ${{ vars.AWS_REGION }}
+    SECURITY_GROUP_ID: ${{ vars.SECURITY_GROUP_ID }}
+    CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
+    SERVICE_NAME: ${{ vars.SERVICE_NAME_BACKEND }}
+    SUBNET_1: ${{ vars.SUBNET_1 }}
+    SUBNET_2: ${{ vars.SUBNET_2 }}
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -32,10 +40,7 @@ jobs:
           aws ecr describe-repositories --repository-names smartbank-backend \
           || aws ecr create-repository --repository-name smartbank-backend
       - name: Build and push Docker image
-        env:
-          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-          ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
+        
         run: |
           IMAGE_TAG=backend-${{ github.sha }}
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
@@ -47,13 +52,11 @@ jobs:
       - name: Register ECS Task Definition
         id: register-task
         env:
-          IMAGE_TAG: frontend-${{ github.sha }}
-          ECR_REPOSITORY: smartbank-backend
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
+          IMAGE_TAG: backend-${{ github.sha }}
+          
         run: |
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
-          sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/frontend.json > backend-task.json
+          sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/backend.json > backend-task.json
 
           TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://backend-task.json --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
@@ -68,12 +71,7 @@ jobs:
             --port 8000 \
             --cidr 0.0.0.0/0 || echo "Ingress rule already exists or failed silently"
       - name: Create ECS Service (if not exists)
-        env:
-          CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
-          SERVICE_NAME: ${{ vars.SERVICE_NAME_BACKEND }}
-          SUBNET_1: ${{ vars.SUBNET_1 }}
-          SUBNET_2: ${{ vars.SUBNET_2 }}
-          SECURITY_GROUP_ID: ${{ vars.SECURITY_GROUP_ID }}
+       
         run: |
           SERVICE_EXISTS=$(aws ecs describe-services \
             --cluster $CLUSTER_NAME \
@@ -103,9 +101,7 @@ jobs:
           echo "Listing services in cluster $CLUSTER_NAME..."
           aws ecs list-services --cluster "$CLUSTER_NAME"     
       - name: Update ECS Service with latest task definition
-        env:
-          CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
-          SERVICE_NAME: ${{ vars.SERVICE_NAME_BACKEND }}
+
         run: |
           echo "Using task definition: $TASK_DEF_ARN"
 
