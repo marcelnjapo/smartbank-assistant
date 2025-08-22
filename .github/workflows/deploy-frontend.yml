@@ -1,6 +1,3 @@
-name: Debug cluster var
-run: |
-    echo "CLUSTER_NAME is: ${{ vars.CLUSTER_NAME }}"
 name: Deploy Streamlit Frontend
 
 on:
@@ -46,7 +43,10 @@ jobs:
           
           docker build -t $IMAGE_URI -f Dockerfile.frontend .
           docker push $IMAGE_URI
-
+      - name: Debug cluster var
+        run: |
+          echo "CLUSTER_NAME is: ${{ vars.CLUSTER_NAME }}"
+          
       - name: Register ECS Task Definition
         id: register-task
         env:
