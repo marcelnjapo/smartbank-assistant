@@ -62,6 +62,7 @@ jobs:
           echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
  
       - name: Authorize security group ingress (port 80)
+      
         env:
           SECURITY_GROUP_ID: ${{ vars.SECURITY_GROUP_ID }}
         run: |
