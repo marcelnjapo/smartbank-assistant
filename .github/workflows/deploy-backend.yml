@@ -93,7 +93,15 @@ jobs:
               --scheduling-strategy REPLICA
           else
             echo "Service $SERVICE_NAME already exists — skipping creation"
-          fi      
+          fi 
+      - name: Debug ECS Service Info
+        run: |
+          echo "Cluster name: $CLUSTER_NAME"
+          echo "Service name: $SERVICE_NAME"
+          echo "Task Definition ARN: $TASK_DEF_ARN"
+
+          echo "Listing services in cluster $CLUSTER_NAME..."
+          aws ecs list-services --cluster "$CLUSTER_NAME"     
       - name: Update ECS Service with latest task definition
         env:
           CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
