@@ -71,24 +71,26 @@ jobs:
             --cidr 0.0.0.0/0 || echo "Ingress rule already exists or failed silently"
       - name: Create ECS Service (if not exists)
         run: |
-          SERVICE_EXISTS=$(aws ecs describe-services \
-            --cluster $CLUSTER_NAME \
-            --services $SERVICE_NAME \
-            --query "services[0].status" \
-            --output text 2>/dev/null || echo "MISSING")
+          echo "Vérification de l'existence du service $SERVICE_NAME dans le cluster $CLUSTER_NAME..."
 
-          if [ "$SERVICE_EXISTS" = "MISSING" ]; then
-            echo "Creating ECS service: $SERVICE_NAME"
+          SERVICE_EXISTS=$(aws ecs describe-services \
+            --cluster "$CLUSTER_NAME" \
+            --services "$SERVICE_NAME" \
+            --query "failures[0].reason" \
+            --output text 2>/dev/null)
+
+          if [ "$SERVICE_EXISTS" = "MISSING" ] || [ "$SERVICE_EXISTS" = "ServiceNotFound" ]; then
+            echo "Le service n'existe pas, création en cours : $SERVICE_NAME"
             aws ecs create-service \
-              --cluster $CLUSTER_NAME \
-              --service-name $SERVICE_NAME \
+              --cluster "$CLUSTER_NAME" \
+              --service-name "$SERVICE_NAME" \
               --launch-type FARGATE \
-              --task-definition $TASK_DEF_ARN \
+              --task-definition "$TASK_DEF_ARN" \
               --desired-count 1 \
               --network-configuration "awsvpcConfiguration={subnets=[\"$SUBNET_1\",\"$SUBNET_2\"],securityGroups=[\"$SECURITY_GROUP_ID\"],assignPublicIp=\"ENABLED\"}" \
               --scheduling-strategy REPLICA
           else
-            echo "Service $SERVICE_NAME already exists — skipping creation"
+            echo "Le service $SERVICE_NAME existe déjà — on passe à la suite"
           fi
       - name: Debug ECS Service Info
         run: |
