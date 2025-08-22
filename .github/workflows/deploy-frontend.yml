@@ -52,6 +52,7 @@ jobs:
           echo "CLUSTER_NAME is: ${{ vars.CLUSTER_NAME }}"
       - name: Register ECS Task Definition
         id: register-task
+        
         env:
           IMAGE_TAG: frontend-${{ github.sha }}
         run: |
