@@ -51,8 +51,6 @@ jobs:
         id: register-task
         env:
           IMAGE_TAG: backend-${{ github.sha }}
-
-
         run: |
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
           sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/backend.json > backend-task.json

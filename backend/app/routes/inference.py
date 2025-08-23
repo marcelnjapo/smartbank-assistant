@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Form, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
-from app.services.summarizer import summarize_transcript
-from app.services.pdf_generator import generate_pdf_base64
-from app.services.transcription import transcribe_with_openai
+from services.summarizer import summarize_transcript
+from services.pdf_generator import generate_pdf_base64
+from services.transcription import transcribe_with_openai
 import base64
-from app.services.sentiment import analyze_sentiment
+from services.sentiment import analyze_sentiment
 router = APIRouter()
 
 @router.post("/transcribe")

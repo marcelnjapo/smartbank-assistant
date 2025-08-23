@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import inference
+from routes import inference
 
 app = FastAPI(title="Smart Pro Assistant API")
 
