@@ -15,7 +15,15 @@
           "containerPort": 80,
           "protocol": "tcp"
         }
-      ]
+      ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/smartbank-backend",
+        "awslogs-region": "eu-central-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
     }
   ]
 }

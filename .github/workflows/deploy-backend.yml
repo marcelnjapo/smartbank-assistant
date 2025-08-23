@@ -53,8 +53,8 @@ jobs:
         id: register-task
         env:
           IMAGE_TAG: backend-${{ github.sha }}
-         
-          
+
+
         run: |
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
           sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/backend.json > backend-task.json
@@ -100,14 +100,12 @@ jobs:
           echo "Cluster name: $CLUSTER_NAME"
           echo "Service name: $SERVICE_NAME"
           echo "Task Definition ARN: $TASK_DEF_ARN"
-
           echo "Listing services in cluster $CLUSTER_NAME..."
           aws ecs list-services --cluster "$CLUSTER_NAME"     
       - name: Update ECS Service with latest task definition
 
         run: |
           echo "Using task definition: $TASK_DEF_ARN"
-
           aws ecs update-service \
             --cluster "$CLUSTER_NAME" \
             --service "$SERVICE_NAME" \
