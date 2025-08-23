@@ -1,5 +1,4 @@
 name: Deploy FastAPI Backend
-
 on:
   push:
     branches:
