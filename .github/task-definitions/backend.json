@@ -16,14 +16,20 @@
           "protocol": "tcp"
         }
       ],
-    "logConfiguration": {
-      "logDriver": "awslogs",
-      "options": {
-        "awslogs-group": "/ecs/smartbank-backend",
-        "awslogs-region": "eu-central-1",
-        "awslogs-stream-prefix": "ecs"
-      }
-    }
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/smartbank-backend",
+          "awslogs-region": "eu-central-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "environment": [
+        {
+          "name": "OPENAI_API_KEY",
+          "value": "REPLACEME_OPENAI_API_KEY"
+        }
+      ]
     }
   ]
 }
