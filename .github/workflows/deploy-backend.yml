@@ -52,7 +52,7 @@ jobs:
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: .github/task-definitions/smartbank-backend-task.json
+          task-definition: .github/task-definitions/backend.json
           container-name: backend
           image: ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:backend-${{ github.sha }}
           environment-variables: |
