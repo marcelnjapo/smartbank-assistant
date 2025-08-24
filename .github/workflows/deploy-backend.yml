@@ -81,6 +81,11 @@ jobs:
           aws ecs update-service --cluster "$CLUSTER_NAME" --service "$SERVICE_NAME" --desired-count 0 || true
           aws ecs delete-service --cluster "$CLUSTER_NAME" --service "$SERVICE_NAME" --force || true
 
+          echo "Waiting for ECS service to be fully deleted..."
+            aws ecs wait services-inactive \
+              --cluster $CLUSTER_NAME \
+              --services $SERVICE_NAME
+              
       - name: Create ECS Service with ALB
         run: |
           aws ecs create-service \
