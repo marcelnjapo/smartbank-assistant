@@ -16,6 +16,7 @@ env:
   SERVICE_NAME: ${{ vars.SERVICE_NAME_BACKEND }}
   SUBNET_1: ${{ vars.SUBNET_1 }}
   SUBNET_2: ${{ vars.SUBNET_2 }}
+  TG_ARN_BACKEND: ${{vars.TG_ARN_BACKEND}}
 
 jobs:
   deploy:
@@ -74,26 +75,23 @@ jobs:
             --port 80 \
             --cidr 0.0.0.0/0 || echo "Ingress rule already exists or failed silently"
 
-      - name: Create ECS Service (if not exists)
+      - name: Delete service if it exists (clean for ALB recreation)
+        continue-on-error: true
         run: |
-          SERVICE_EXISTS=$(aws ecs describe-services \
-            --cluster "$CLUSTER_NAME" \
-            --services "$SERVICE_NAME" \
-            --query "failures[0].reason" \
-            --output text 2>/dev/null)
+          aws ecs update-service --cluster "$CLUSTER_NAME" --service "$SERVICE_NAME" --desired-count 0 || true
+          aws ecs delete-service --cluster "$CLUSTER_NAME" --service "$SERVICE_NAME" --force || true
 
-          if [ "$SERVICE_EXISTS" = "MISSING" ] || [ "$SERVICE_EXISTS" = "ServiceNotFound" ]; then
-            aws ecs create-service \
-              --cluster "$CLUSTER_NAME" \
-              --service-name "$SERVICE_NAME" \
-              --launch-type FARGATE \
-              --task-definition "$TASK_DEF_ARN" \
-              --desired-count 1 \
-              --network-configuration "awsvpcConfiguration={subnets=[\"$SUBNET_1\",\"$SUBNET_2\"],securityGroups=[\"$SECURITY_GROUP_ID\"],assignPublicIp=\"ENABLED\"}" \
-              --scheduling-strategy REPLICA
-          else
-            echo "Service already exists"
-          fi
+      - name: Create ECS Service with ALB
+        run: |
+          aws ecs create-service \
+            --cluster "$CLUSTER_NAME" \
+            --service-name "$SERVICE_NAME" \
+            --launch-type FARGATE \
+            --task-definition "$TASK_DEF_ARN" \
+            --desired-count 1 \
+            --network-configuration "awsvpcConfiguration={subnets=[\"$SUBNET_1\",\"$SUBNET_2\"],securityGroups=[\"$SECURITY_GROUP_ID\"],assignPublicIp=\"ENABLED\"}" \
+            --load-balancers "targetGroupArn=$TG_ARN_BACKEND,containerName=smartbank-backend,containerPort=80" \
+            --scheduling-strategy REPLICA
 
       - name: Update ECS Service with latest task definition
         run: |

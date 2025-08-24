@@ -7,7 +7,7 @@
   "executionRoleArn": "arn:aws:iam::{{ACCOUNT_ID}}:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
-      "name": "backend",
+      "name": "smartbank-backend",
       "image": "{{IMAGE_URI}}",
       "essential": true,
       "portMappings": [
