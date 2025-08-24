@@ -20,7 +20,7 @@ if audio_file:
             try:
                 files = {"file": (audio_file.name, audio_file, audio_file.type or "audio/m4a")}
                 data = {"profil": profil}
-                response = requests.post(API_URL, files=files,data=data)
+                response = requests.post(f"{API_URL}/transcribe", files=files,data=data)
 
                 if response.status_code == 200:
                     data = response.json()
