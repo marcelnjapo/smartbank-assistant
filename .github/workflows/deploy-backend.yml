@@ -7,7 +7,6 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/deploy-backend.yml'
-
 env:
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
   ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
