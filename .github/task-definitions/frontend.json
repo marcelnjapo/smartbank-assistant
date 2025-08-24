@@ -15,7 +15,13 @@
           "hostPort": 80,
           "protocol": "tcp"
         }
-      ]
+      ],
+      "environment": [
+        {
+          "name": "API_URL",
+          "value": "{{API_URL}}"
+        }
+    ]
     }
   ],
   "executionRoleArn": "arn:aws:iam::{{ACCOUNT_ID}}:role/ecsTaskExecutionRole"

@@ -17,6 +17,7 @@ env:
     SUBNET_1: ${{ vars.SUBNET_1 }}
     SUBNET_2: ${{ vars.SUBNET_2 }}
     TG_ARN_FRONTEND: ${{vars.TG_ARN_FRONTEND}}
+    API_URL: ${{vars.API_URL}}
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -58,7 +59,7 @@ jobs:
           IMAGE_TAG: frontend-${{ github.sha }}
         run: |
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
-          sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g" .github/task-definitions/frontend.json > frontend-task.json
+          sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g", s|{{API_URL}}|$API_URL|g" .github/task-definitions/frontend.json > frontend-task.json
 
           TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://frontend-task.json --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
@@ -81,7 +82,7 @@ jobs:
           aws ecs wait services-inactive \
             --cluster $CLUSTER_NAME \
             --services $SERVICE_NAME
-            
+
       - name: Create ECS Service with ALB
         run: |
           aws ecs create-service \
