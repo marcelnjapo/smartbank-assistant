@@ -10,3 +10,11 @@ pyttsx3
 reportlab
 transformers
 torch
+gTTS==2.5.1
+deep-translator
+python-jose[cryptography]
+requests
+fastapi[all] 
+httpx
+sqlalchemy 
+psycopg2-binary

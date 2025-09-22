@@ -18,6 +18,11 @@ env:
     SUBNET_2: ${{ vars.SUBNET_2 }}
     TG_ARN_FRONTEND: ${{vars.TG_ARN_FRONTEND}}
     API_URL: ${{vars.API_URL}}
+    COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
+    COGNITO_DOMAIN: ${{ secrets.COGNITO_DOMAIN }}
+    COGNITO_REDIRECT_URI: ${{ secrets.COGNITO_REDIRECT_URI }} 
+    COGNITO_CLIENT_SECRET: ${{ secrets.COGNITO_CLIENT_SECRET }} 
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

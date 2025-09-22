@@ -1,6 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from routes import inference
+from .routes import inference
+from .services.auth_cognito import verify_jwt
+from .db import models
+
+
+# Création des tables (code first)
 
 app = FastAPI(
     title="Smart Pro Assistant API",
@@ -19,6 +24,19 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "Bienvenue dans l'API SmartPro Assistant 🚀"}
+
+@app.get("/")
+def public_route():
+    return {"message": "Accessible sans authentification"}
+
+@app.get("/secure")
+def secure_route(user=Depends(verify_jwt)):
+     return {
+        "username": user.get("cognito:username"),
+        "email": user.get("email"),
+        "given_name": user.get("given_name"),
+        "family_name": user.get("family_name")
+    }
 
 # Inclusions des routes
 app.include_router(inference.router)

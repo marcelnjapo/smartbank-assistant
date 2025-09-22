@@ -17,10 +17,12 @@
         }
       ],
       "environment": [
-        {
-          "name": "API_URL",
-          "value": "{{API_URL}}"
-        }
+        {"name": "API_URL","value": "{{API_URL}}"},
+        { "name": "COGNITO_REDIRECT_URI", "value": "{{COGNITO_REDIRECT_URI}}" },
+        { "name": "COGNITO_DOMAIN", "value": "{{COGNITO_DOMAIN}}" },
+        { "name": "COGNITO_CLIENT_SECRET", "value": "{{COGNITO_CLIENT_SECRET}}" },
+        { "name": "COGNITO_CLIENT_ID", "value": "{{COGNITO_CLIENT_ID}}" }
+
     ]
     }
   ],
