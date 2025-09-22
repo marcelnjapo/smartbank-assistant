@@ -19,8 +19,8 @@ env:
     TG_ARN_FRONTEND: ${{vars.TG_ARN_FRONTEND}}
     API_URL: ${{vars.API_URL}}
     COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
-    COGNITO_DOMAIN: ${{ secrets.COGNITO_DOMAIN }}
-    COGNITO_REDIRECT_URI: ${{ secrets.COGNITO_REDIRECT_URI }} 
+    COGNITO_DOMAIN: ${{ vars.COGNITO_DOMAIN }}
+    COGNITO_REDIRECT_URI: ${{ vars.COGNITO_REDIRECT_URI }} 
     COGNITO_CLIENT_SECRET: ${{ secrets.COGNITO_CLIENT_SECRET }} 
 
 jobs:
@@ -70,7 +70,7 @@ jobs:
                s|{{COGNITO_CLIENT_ID}}|$COGNITO_CLIENT_ID|g;\
                s|{{COGNITO_REDIRECT_URI}}|$COGNITO_REDIRECT_URI|g;\
                s|{{COGNITO_DOMAIN}}|$COGNITO_DOMAIN|g;\
-              s|{{COGNITO_CLIENT_SECRET}}|$COGNITO_CLIENT_SECRET|g"\
+               s|{{COGNITO_CLIENT_SECRET}}|$COGNITO_CLIENT_SECRET|g"\
            .github/task-definitions/frontend.json > frontend-task.json
 
           TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://frontend-task.json --query 'taskDefinition.taskDefinitionArn' --output text)
