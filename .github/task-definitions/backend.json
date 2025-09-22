@@ -28,7 +28,9 @@
         {"name": "OPENAI_API_KEY","value": "{{OPENAI_API_KEY}}" },
         { "name": "COGNITO_CLIENT_ID", "value": "{{COGNITO_CLIENT_ID}}" },
         { "name": "COGNITO_REGION", "value": "{{COGNITO_REGION}}" },
-        { "name": "USER_POOL_ID", "value": "{{USER_POOL_ID}}" }
+        { "name": "USER_POOL_ID", "value": "{{USER_POOL_ID}}" },
+        {"name": "DATABASE_URL","value": "{{DATABASE_URL}}"}
+
         
       ]
     }

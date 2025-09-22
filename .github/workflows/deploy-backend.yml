@@ -19,7 +19,9 @@ env:
   TG_ARN_BACKEND: ${{vars.TG_ARN_BACKEND}}
   COGNITO_REGION: ${{vars.COGNITO_REGION}}
   USER_POOL_ID : ${{ secrets.USER_POOL_ID }} 
-  COGNITO_CLIENT_ID : ${{ secrets.USER_POOL_ID }} 
+  COGNITO_CLIENT_ID : ${{ secrets.COGNITO_CLIENT_ID }} 
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -59,7 +61,12 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}
-          sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g; s|{{OPENAI_API_KEY}}|$OPENAI_API_KEY|g" \
+          sed "s|{{IMAGE_URI}}|$IMAGE_URI|g; \
+                s|{{ACCOUNT_ID}}|$ACCOUNT_ID|g; \
+                s|{{OPENAI_API_KEY}}|$OPENAI_API_KEY|g; \
+                s|{{COGNITO_REGION}}|$COGNITO_REGION|g; \
+                s|{{USER_POOL_ID}}|$USER_POOL_ID|g; \
+                s|{{COGNITO_CLIENT_ID}}|$COGNITO_CLIENT_ID|g" \
             .github/task-definitions/backend.json > backend-task.json
 
           TASK_DEF_ARN=$(aws ecs register-task-definition \
