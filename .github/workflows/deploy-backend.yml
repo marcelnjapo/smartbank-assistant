@@ -66,7 +66,8 @@ jobs:
                 s|{{OPENAI_API_KEY}}|$OPENAI_API_KEY|g; \
                 s|{{COGNITO_REGION}}|$COGNITO_REGION|g; \
                 s|{{USER_POOL_ID}}|$USER_POOL_ID|g; \
-                s|{{COGNITO_CLIENT_ID}}|$COGNITO_CLIENT_ID|g" \
+                s|{{COGNITO_CLIENT_ID}}|$COGNITO_CLIENT_ID|g\
+                s|{{DATABASE_URL}}|$DATABASE_URL|g" \
             .github/task-definitions/backend.json > backend-task.json
 
           TASK_DEF_ARN=$(aws ecs register-task-definition \
