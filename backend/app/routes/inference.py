@@ -2,20 +2,20 @@ from fastapi import APIRouter, Form, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from ..db.models import TranscriptionHistory
+from app.db.models import TranscriptionHistory
 
 
 
-from ..services.summarizer import summarize_transcript
-from ..services.pdf_generator import generate_pdf_base64
-from ..services.transcription import transcribe_with_openai
-from ..services.translation_utils import translate_to_english
+from app.services.summarizer import summarize_transcript
+from app.services.pdf_generator import generate_pdf_base64
+from app.services.transcription import transcribe_with_openai
+from app.services.translation_utils import translate_to_english
 import base64
-from ..services.sentiment import analyze_sentiment
+from app.services.sentiment import analyze_sentiment
 
 from fastapi import Depends, Header, HTTPException
-from ..services.auth_cognito import verify_jwt
-from ..dependencies.db import get_db 
+from app.services.auth_cognito import verify_jwt
+from app.dependencies.db import get_db 
 router = APIRouter()
 
 

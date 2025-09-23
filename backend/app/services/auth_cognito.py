@@ -5,9 +5,9 @@ from jose.jwt import get_unverified_header, decode
 from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import httpx
-from ..config import COGNITO_REGION
-from ..config import USER_POOL_ID
-from ..config import COGNITO_CLIENT_ID
+from app.config import COGNITO_REGION
+from app.config import USER_POOL_ID
+from app.config import COGNITO_CLIENT_ID
 
 JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{USER_POOL_ID}/.well-known/jwks.json"
 
