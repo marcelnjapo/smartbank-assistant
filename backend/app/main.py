@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import inference
-from .services.auth_cognito import verify_jwt
-from .db import models
+from app.routes import inference
+from app.services.auth_cognito import verify_jwt
+from app.db import models
 
 
 # Création des tables (code first)
