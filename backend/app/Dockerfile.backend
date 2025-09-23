@@ -1,15 +1,19 @@
 FROM python:3.11
 
+# Dossier de travail dans le conteneur
 WORKDIR /app
 
-# Copie TOUT le dossier backend (y compris app/)
+# Copie le code du backend (le dossier backend contient le dossier app/)
 COPY ./backend /app
 
-# Ajoute le répertoire /app à PYTHONPATH pour que les imports absolus comme "from app.routes" fonctionnent
+# Copie le requirements.txt (situé à la racine du projet)
+COPY ./requirements.txt /app/requirements.txt
+
+# Ajout du répertoire /app au PYTHONPATH pour que les imports fonctionnent
 ENV PYTHONPATH=/app
 
-# Installe les dépendances
-RUN pip install --no-cache-dir -r app/requirements.txt
+# Installation des dépendances
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Lance l'application FastAPI
+# Lancement de l'API
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
