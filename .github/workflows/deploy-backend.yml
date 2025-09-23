@@ -69,7 +69,6 @@ jobs:
                 s|{{COGNITO_CLIENT_ID}}|$COGNITO_CLIENT_ID|g; \
                 s|{{DATABASE_URL}}|$DATABASE_URL|g" \
             .github/task-definitions/backend.json > backend-task.json
-
           TASK_DEF_ARN=$(aws ecs register-task-definition \
             --cli-input-json file://backend-task.json \
             --query 'taskDefinition.taskDefinitionArn' \
