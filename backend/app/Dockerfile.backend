@@ -7,6 +7,8 @@ COPY ./backend/app /app
 
 # Copie le requirements.txt situé à la racine
 COPY requirements.txt /app/requirements.txt
+#✅ Ajout du dossier de travail dans le PYTHONPATH
+ENV PYTHONPATH=/app
 
 # Installation des dépendances
 RUN pip install --no-cache-dir -r /app/requirements.txt
