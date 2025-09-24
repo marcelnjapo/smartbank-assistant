@@ -27,6 +27,10 @@ st.set_page_config(page_title="Smart Pro Assistant",
                     layout="wide",  
                     initial_sidebar_state="auto"
                     )
+# Load CSS styles
+with open("frontend/style_buttons.css") as f:
+     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+                  
 # OAuth2 - Connexion Cognito
 query_params = st.query_params
 auth_headers={}
@@ -94,17 +98,15 @@ with st.container():
     col_spacer, col_user = st.columns([8, 1.5])
     with col_user:
         if "id_token" in st.session_state:
-            if st.button("🔒 Se déconnecter", key="logout_btn"):
+            if st.button("🔒 Se déconnecter", key="bouton-deconnexion"):
                 st.session_state.clear()
-                st.markdown(f'<meta http-equiv="refresh" content="0;url={logout_url}">', unsafe_allow_html=True)
+                st.markdown(f"<meta http-equiv='refresh' content='0;url={logout_url}'>", unsafe_allow_html=True)
                 st.stop()
         else:
             st.markdown(
-                f"<div style='text-align:right;'>"
-                f"<a href='{login_url}'><button>👉 Se connecter</button></a>"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
+            f"<div style='text-align:right;'><a href='{login_url}'><button class='bouton-connexion'>🖐️ Se connecter</button></a></div>",
+            unsafe_allow_html=True
+    )
 
        
 # ✅ CONTENU DE LA PAGE (affiché à tous)
@@ -137,17 +139,19 @@ with col_formulaire:
     # ✅ Section : Fichiers audio de démonstration (avec expander)
     with st.expander("📥 Fichiers audio de test (cliquer pour afficher / masquer)"):
         demo_files = {
-            "Banquier.wav": "https://smartproassistant.s3.eu-central-1.amazonaws.com/banquier.wav",
-            "Avocat.wav": "https://smartproassistant.s3.eu-central-1.amazonaws.com/avocat.wav",
-            "SAV.wav": "https://smartproassistant.s3.eu-central-1.amazonaws.com/sav.wav",
-            "Juriste.wav": "https://smartproassistant.s3.eu-central-1.amazonaws.com/juriste.wav",
-            "Agent immobilier.wav": "https://smartproassistant.s3.eu-central-1.amazonaws.com/agent_immobilier.wav"
+            "Banquier": "https://smartproassistant.s3.eu-central-1.amazonaws.com/banquier.wav",
+            "Avocat": "https://smartproassistant.s3.eu-central-1.amazonaws.com/avocat.wav",
+            "SAV": "https://smartproassistant.s3.eu-central-1.amazonaws.com/sav.wav",
+            "Juriste": "https://smartproassistant.s3.eu-central-1.amazonaws.com/juriste.wav",
+            "Agent immobilier": "https://smartproassistant.s3.eu-central-1.amazonaws.com/agent_immobilier.wav"
         }
 
         if "uploaded_file" not in st.session_state:
             st.session_state["uploaded_file"] = None
 
-        for label, url in demo_files.items():
+        if profil in demo_files:
+            url=demo_files[profil]
+            label=f"{profil}.wav"
             st.markdown(f"**🎧 {label}**")
             st.audio(url, format="audio/wav")
 
@@ -187,67 +191,90 @@ with col_formulaire:
     # ✅ Affichage de l’audio + envoi à l’API
     if uploaded_file:
         st.audio(uploaded_file, format="audio/wav")
+        st.markdown("---")
+    # ✅ Encadré explicatif
+        st.markdown("""
+            <div style='
+                background-color: #f0f9ff;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                border: 2px solid #2196f3;
+                margin-bottom: 20px;
+            '>
+                <p style="font-size:20px; font-weight:bold; color:#0d47a1;">
+                    🎯 Cliquez ci-dessous pour lancer l’analyse vocale complète
+                </p>
+                <p style="font-size:16px; color:#0d47a1;">
+                    Transcription, résumé, sentiment & fiche PDF générée automatiquement
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
 
-        if st.button("Envoyer pour transcription"):
-            if "id_token" not in st.session_state:
-                st.markdown(
-                    """
-                    <div style='
-                        background-color: #fdecea;
-                        color: #a94442;
-                        padding: 15px;
-                        border-left: 6px solid #f44336;
-                        border-radius: 4px;
-                        font-weight: 500;
-                    '>
-                        ❌ Vous devez être connecté pour utiliser cette fonctionnalité (transcription, résumé, PDF, etc.).
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            else:
-                with st.spinner("⏳ Transcription en cours..."):
-                    try:
-                        files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type or "audio/m4a")}
-                        data = {"profil": profil}
-                        
-                        response = requests.post(f"{API_URL}/transcribe", files=files, data=data, headers=auth_headers)
+        # ✅ Bouton bien visible et centré
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("🎧 Envoyer pour transcription", key="transcribe_btn"):
+                if "id_token" not in st.session_state:
+                    st.markdown(
+                        """
+                        <div style='
+                            background-color: #fdecea;
+                            color: #a94442;
+                            padding: 15px;
+                            border-left: 6px solid #f44336;
+                            border-radius: 4px;
+                            font-weight: 500;
+                            margin-top: 20px;
+                        '>
+                            ❌ Vous devez être connecté pour utiliser cette fonctionnalité (transcription, résumé, PDF, etc.).
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                else:
+                    with st.spinner("⏳ Transcription en cours..."):
+                        try:
+                            files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type or "audio/m4a")}
+                            data = {"profil": profil}
+                            
+                            response = requests.post(f"{API_URL}/transcribe", files=files, data=data, headers=auth_headers)
 
-                        if response.status_code == 200:
-                            data = response.json()
-                            st.success("✅ Transcription réussie")
-                            st.text_area("📝 Transcription", data["transcription"], height=200)
+                            if response.status_code == 200:
+                                data = response.json()
+                                st.success("✅ Transcription réussie")
+                                st.text_area("📝 Transcription", data["transcription"], height=200)
 
-                            st.markdown("### 🧠 Résumé automatique")
-                            st.write(data["summary"])
-                            # ✅ Option pour afficher la traduction anglaise
-                            with st.expander("### 🌍 Traduction anglaise du résumé"):
-                                st.write(data["summary_en"])
-                            st.markdown("### 😃 Analyse de sentiment")
-                            st.info(data["sentiment"])
+                                st.markdown("### 🧠 Résumé automatique")
+                                st.write(data["summary"])
+                                # ✅ Option pour afficher la traduction anglaise
+                                with st.expander("### 🌍 Traduction anglaise du résumé"):
+                                    st.write(data["summary_en"])
+                                st.markdown("### 😃 Analyse de sentiment")
+                                st.info(data["sentiment"])
 
-                            st.markdown("### 📄 Télécharger la fiche PDF")
-                            st.download_button(
-                                label="📥 Télécharger la fiche",
-                                data=base64.b64decode(data["pdf_base64"]),
-                                file_name=f"fiche_{profil.lower().replace(' ', '_')}.pdf",
-                                mime="application/pdf"
-                            )
-                            audio_data = generate_tts_audio(data["summary"])
-                            st.markdown("### 🔈 Écouter le résumé vocal")
-                            #lecture audio Streamlit
-                            st.audio(audio_data, format="audio/mp3")
-                            # 📥 Bouton de téléchargement
-                            st.download_button(
-                                label="📥 Télécharger le résumé vocal",
-                                data=audio_data,
-                                file_name="resume_audio.mp3",
-                                mime="audio/mpeg"
-                            )
-                        else:
-                            st.error(f"❌ Erreur API : {response.status_code} - {response.text}")
-                    except Exception as e:
-                        st.error(f"❌ Erreur : {str(e)}")
+                                st.markdown("### 📄 Télécharger la fiche PDF")
+                                st.download_button(
+                                    label="📥 Télécharger la fiche",
+                                    data=base64.b64decode(data["pdf_base64"]),
+                                    file_name=f"fiche_{profil.lower().replace(' ', '_')}.pdf",
+                                    mime="application/pdf"
+                                )
+                                audio_data = generate_tts_audio(data["summary"])
+                                st.markdown("### 🔈 Écouter le résumé vocal")
+                                #lecture audio Streamlit
+                                st.audio(audio_data, format="audio/mp3")
+                                # 📥 Bouton de téléchargement
+                                st.download_button(
+                                    label="📥 Télécharger le résumé vocal",
+                                    data=audio_data,
+                                    file_name="resume_audio.mp3",
+                                    mime="audio/mpeg"
+                                )
+                            else:
+                                st.error(f"❌ Erreur API : {response.status_code} - {response.text}")
+                        except Exception as e:
+                            st.error(f"❌ Erreur : {str(e)}")
 with col_historique:
     if st.checkbox("📜 Afficher mon historique de transcription"):
         if "id_token" not in st.session_state:
@@ -275,4 +302,3 @@ with col_historique:
                         st.error(f"Erreur API : {response.status_code} - {response.text}")
             except Exception as e:
                 st.error(f"Erreur lors du chargement de l'historique : {e}")
-
