@@ -28,8 +28,14 @@ st.set_page_config(page_title="Smart Pro Assistant",
                     initial_sidebar_state="auto"
                     )
 # Load CSS styles
-with open("frontend/style_buttons.css") as f:
-     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+# with open("frontend/style_buttons.css") as f:
+#      st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+css_path = os.path.join(os.path.dirname(__file__), "style_buttons.css")
+if os.path.exists(css_path):
+    with open(css_path) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+else:
+    st.warning("⚠️ Fichier style_buttons.css introuvable.")
                   
 # OAuth2 - Connexion Cognito
 query_params = st.query_params
